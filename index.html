@@ -2,12 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Locks viewport layout -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Ateek | UI/UX Dashboard</title>
   
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#070707">
+  <!-- Tells Android Chrome this is a web app -->
   <meta name="mobile-web-app-capable" content="yes">
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -16,7 +18,9 @@
   <style>
     :root { --bg: #171717; --card: #222222; --txt: #f0f0f0; --mut: #888888; --blu: #5b748a; --bge: #c4c2b5; color-scheme: dark; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--txt); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem; overflow-x: hidden; cursor: none; }
+    
+    html, body { width: 100%; overflow-x: hidden; position: relative; }
+    body { background: var(--bg); color: var(--txt); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem; cursor: none; }
     
     #csr { position: fixed; top: 0; left: 0; width: 12px; height: 12px; background: #fff; border-radius: 50%; pointer-events: none; z-index: 999999; mix-blend-mode: difference; transition: width 0.2s, height 0.2s, transform 0.1s linear; transform: translate(-50%, -50%); display: none; }
     .hovered { width: 32px !important; height: 32px !important; }
@@ -51,30 +55,59 @@
     #dash { width: 100%; max-width: 1200px; opacity: 0; transform: translateY(30px); transition: all 1s ease 0.2s; display: flex; flex-direction: column; gap: 1rem; }
     #dash.vis { opacity: 1; transform: translateY(0); }
     .top { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 1rem; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--mut); flex-wrap: wrap; gap: 1rem; }
-    .grp { display: flex; gap: 2rem; align-items: flex-end; } .grp span { color: var(--txt); display: block; margin-top: 4px; font-size: 0.9rem; font-weight: bold;}
+    .grp { display: flex; gap: 2rem; align-items: flex-end; flex-wrap: wrap; } .grp span { color: var(--txt); display: block; margin-top: 4px; font-size: 0.9rem; font-weight: bold;}
     .xp-bar { width: 100%; height: 4px; background: #333; margin-top: 8px; border-radius: 2px; overflow: hidden; } .xp-fill { height: 100%; background: var(--txt); width: 0%; transition: width 0.5s; }
     .clk { background: #111; padding: 6px 12px; border: 1px solid #333; color: var(--bge); font-size: 1.1rem; }
     
-    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    .card { background: var(--card); padding: 1.5rem; display: flex; flex-direction: column; position: relative; }
-    .lbl { font-family: 'Space Mono'; font-size: 0.7rem; color: var(--mut); letter-spacing: 1px; margin-bottom: 1rem; display: flex; justify-content: space-between; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%; }
+    .card { background: var(--card); padding: 1.5rem; display: flex; flex-direction: column; position: relative; min-width: 0; overflow: hidden; }
+    
+    .lbl { font-family: 'Space Mono'; font-size: 0.7rem; color: var(--mut); letter-spacing: 1px; margin-bottom: 1rem; display: flex; justify-content: space-between; flex-wrap: wrap; }
     .sp2 { grid-column: span 2; } .c-blu { background: var(--blu); color: #fff; } .c-bge { background: var(--bge); color: var(--bg); }
     .tmr { font-family: 'Space Mono'; font-size: 4rem; font-weight: bold; text-align: center; margin: auto; }
-    .btns { display: flex; gap: 10px; justify-content: center; } .btn { background: var(--bg); color: var(--txt); border: 1px solid #333; padding: 8px 16px; font-family: 'Space Mono'; font-size: 0.8rem; text-decoration: none; } .btn.pri { background: var(--blu); border-color: var(--blu); color: #fff;}
+    .btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; } .btn { background: var(--bg); color: var(--txt); border: 1px solid #333; padding: 8px 16px; font-family: 'Space Mono'; font-size: 0.8rem; text-decoration: none; text-align: center; } .btn.pri { background: var(--blu); border-color: var(--blu); color: #fff;}
     
     .heat { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; justify-content: flex-start; } 
     .hb { width: 12px; height: 12px; background: #111; border-radius: 2px; } 
     .h1 { background: #3a4752; } .h2 { background: var(--blu); } .h3 { background: #8da4b8; } .h4 { background: var(--bge); }
     
     .tsk { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; font-family: 'Space Mono'; font-size: 0.8rem; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 0.5rem; }
-    .chk { width: 18px; height: 18px; border: 2px solid var(--mut); display: flex; justify-content: center; align-items: center; } .chk.done { background: var(--txt); border-color: var(--txt); color: var(--bg); } .chk.done::after { content: '×'; font-weight: bold; font-size: 14px; }
-    .tag { font-size: 0.6rem; padding: 2px 4px; font-weight: bold; margin: 0 8px; border: 1px solid; } .t-ui { color: var(--blu); border-color: var(--blu); } .t-un { color: var(--bge); border-color: var(--bge); } .t-dt { color: var(--mut); border-color: #444; }
-    .inp { display: flex; gap: 8px; margin-bottom: 1rem; } .inp input, .inp select { flex: 1; background: transparent; border: 1px solid #444; color: var(--txt); padding: 8px; font-family: 'Space Mono'; font-size: 0.8rem; outline: none; } .inp button { background: var(--txt); color: var(--bg); border: none; padding: 0 16px; font-family: 'Space Mono'; font-weight: bold; }
-    .cw { flex: 1; width: 100%; min-height: 140px; }
-    textarea { width: 100%; flex: 1; background: transparent; border: none; color: var(--txt); font-family: 'Space Mono'; font-size: 0.8rem; resize: none; outline: none; }
+    .chk { width: 18px; height: 18px; border: 2px solid var(--mut); display: flex; justify-content: center; align-items: center; flex-shrink: 0; } .chk.done { background: var(--txt); border-color: var(--txt); color: var(--bg); } .chk.done::after { content: '×'; font-weight: bold; font-size: 14px; }
+    .tag { font-size: 0.6rem; padding: 2px 4px; font-weight: bold; margin: 0 8px; border: 1px solid; flex-shrink: 0; } .t-ui { color: var(--blu); border-color: var(--blu); } .t-un { color: var(--bge); border-color: var(--bge); } .t-dt { color: var(--mut); border-color: #444; }
+    
+    .inp { display: flex; gap: 8px; margin-bottom: 1rem; width: 100%; } 
+    .inp input, .inp select { flex: 1; min-width: 0; background: transparent; border: 1px solid #444; color: var(--txt); padding: 8px; font-family: 'Space Mono'; font-size: 0.8rem; outline: none; } 
+    .inp button { background: var(--txt); color: var(--bg); border: none; padding: 8px 16px; font-family: 'Space Mono'; font-weight: bold; white-space: nowrap; }
+    
+    .cw { position: relative; width: 100%; min-height: 140px; flex: 1; }
+    textarea { width: 100%; flex: 1; background: transparent; border: none; color: var(--txt); font-family: 'Space Mono'; font-size: 0.8rem; resize: none; outline: none; min-height: 80px; }
 
+    /* === STRICT MOBILE LAYOUT === */
     @media (max-width: 1024px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 600px) { body { padding: 1rem; } .grid { grid-template-columns: 1fr; } .sp2 { grid-column: span 1; } .ld-abs { display: none; } .ld-cen { transform: scale(0.8); } .grp { flex-wrap: wrap; gap: 1rem; } }
+    @media (max-width: 600px) { 
+      body { padding: 1rem; } 
+      #dash { gap: 0.5rem; }
+      .grid { grid-template-columns: 1fr; gap: 12px; } 
+      .sp2 { grid-column: span 1; } 
+      .ld-abs { display: none; } 
+      .ld-cen { transform: scale(0.8); } 
+      
+      .top { flex-direction: column; align-items: flex-start; }
+      .grp { flex-direction: column; align-items: flex-start; gap: 1rem; width: 100%; }
+      .card { padding: 1.2rem; }
+      
+      .tmr { font-size: 3rem; }
+      
+      .inp { flex-wrap: wrap; }
+      .inp input, .inp select { width: 100%; flex: none; }
+      .inp button { width: 100%; }
+      
+      .cw { min-height: 120px; }
+      #sys { display: none; }
+
+      /* PREVENT ANDROID ZOOM ON TAP */
+      .inp input, .inp select, textarea { font-size: 16px !important; }
+    }
   </style>
 </head>
 <body>
@@ -102,26 +135,29 @@
 
   <div id="dash">
     <div class="top">
-      <div class="grp">
-        <div class="stat-item">STUDENT ATEEK<span id="lvl-txt">LVL 01</span><div class="xp-bar"><div class="xp-fill" id="xp-bar"></div></div></div>
+      <div class="grp" style="flex:1;">
+        <div class="stat-item" style="width:100%;">STUDENT ATEEK<span id="lvl-txt">LVL 01</span><div class="xp-bar"><div class="xp-fill" id="xp-bar"></div></div></div>
         <div class="stat-item">DEEP WORK<span id="st-hr">0.0H</span></div>
       </div>
-      <div class="grp"><div class="stat-item">DATE<span id="dt">DATE</span></div><div class="clk" id="ck">12:00<span style="font-size:0.6em;color:var(--mut);">AM</span></div></div>
+      <div class="grp" style="flex-direction: row; justify-content: space-between; width:100%;">
+        <div class="stat-item">DATE<span id="dt">DATE</span></div>
+        <div class="clk" id="ck">12:00<span style="font-size:0.6em;color:var(--mut);">AM</span></div>
+      </div>
     </div>
     
     <div class="grid">
       <div class="card sp2"><div class="lbl">POMODORO ENGINE<span>FOCUS</span></div><div class="tmr glc click" data-text="25:00" id="tmr">25:00</div><div class="btns"><button class="btn click" onclick="sT(25)">25M</button><button class="btn click" onclick="sT(50)">50M</button><button class="btn pri click" id="b-st" onclick="tT()">START</button></div></div>
-      <div class="card c-blu sp2"><div class="lbl" style="color:rgba(255,255,255,0.7);">UX PRINCIPLE<span>DAILY</span></div><div style="font-family:'Space Mono'; font-weight:bold; font-size:1.1rem; line-height:1.4; margin:auto 0;" id="law-txt">Loading...</div></div>
+      <div class="card c-blu sp2"><div class="lbl" style="color:rgba(255,255,255,0.7);">UX PRINCIPLE<span>DAILY</span></div><div style="font-family:'Space Mono'; font-weight:bold; font-size:1rem; line-height:1.4; margin:auto 0;" id="law-txt">Loading...</div></div>
 
       <div class="card"><div class="lbl">BALANCE<span>UNI/UX</span></div><div class="cw"><canvas id="dc"></canvas></div></div>
-      <div class="card c-bge" style="justify-content:center;"><div class="lbl" style="color:#000; position:absolute; top:1rem;">XP GAINED</div><div style="font-family:'Space Mono';font-size:3.5rem;font-weight:bold;text-align:center;color:#000;" id="xp-tot">0</div></div>
+      <div class="card c-bge" style="justify-content:center;"><div class="lbl" style="color:#000; position:absolute; top:1rem;">XP GAINED</div><div style="font-family:'Space Mono';font-size:3rem;font-weight:bold;text-align:center;color:#000;margin-top:1rem;" id="xp-tot">0</div></div>
       <div class="card sp2"><div class="lbl">ACTIVITY HISTORY<span>TASKS/HR</span></div><div class="cw"><canvas id="lc"></canvas></div></div>
 
       <div class="card sp2"><div class="lbl">CONSISTENCY<span>12WKS</span></div><div class="heat" id="ht"></div></div>
       <div class="card sp2"><div class="lbl">MASTER TASK LIST<span>PRIORITY</span></div><div class="inp"><select id="i-ty"><option value="ui">UI/UX</option><option value="un">UNI</option></select><input type="text" id="i-tk" placeholder="Task..."><button class="click" onclick="aT()">ADD</button></div><div id="tk-ls"></div></div>
       
       <div class="card sp2"><div class="lbl">SCRATCHPAD<span>AUTO-SAVE</span></div><textarea id="pad" placeholder="Quick ideas, notes, links..."></textarea></div>
-      <div class="card sp2"><div class="lbl">SYSTEM DATA<span>BACKUP</span></div><div style="margin:auto 0; display:flex; gap:10px;"><button class="btn click glc" data-text="EXPORT DATA" style="flex:1;" onclick="expD()">EXPORT DATA</button><button class="btn click" style="flex:1;" onclick="impD()">IMPORT DATA</button><input type="file" id="f-imp" style="display:none;" accept=".json"></div></div>
+      <div class="card sp2"><div class="lbl">SYSTEM DATA<span>BACKUP</span></div><div class="btns" style="margin:auto 0;"><button class="btn click glc" data-text="EXPORT DATA" style="flex:1;" onclick="expD()">EXPORT DATA</button><button class="btn click" style="flex:1;" onclick="impD()">IMPORT DATA</button><input type="file" id="f-imp" style="display:none;" accept=".json"></div></div>
 
       <div class="card sp2"><div class="lbl">EVENT CALENDAR<span>IMPORTANT DATES</span></div><div class="inp"><input type="date" id="i-dt"><input type="text" id="i-ev" placeholder="Event note..."><button class="click" onclick="aE()">ADD</button></div><div id="ev-ls"></div></div>
       <div class="card sp2"><div class="lbl">CAREER PIPELINE<span>JOBS</span></div><div class="inp"><input type="text" id="i-jb" placeholder="Company..."><button class="click" onclick="aJ()">TRACK</button></div><div id="jb-ls"></div></div>
@@ -167,7 +203,7 @@
       let sC = document.getElementById('sys-clk'); if(sC) sC.innerText = `${h.toString().padStart(2,'0')}:${m}:${s}:${ms}`;
     }, 40);
     
-    const laws = ["Fitts's Law: Time to target depends on distance & size.", "Hick's Law: More choices = more time to decide.", "Jakob's Law: Users prefer sites that work like ones they know.", "Zeigarnik Effect: Uncompleted tasks stick in your memory.", "Aesthetic-Usability Effect: Pretty things seem easier to use.", "Von Restorff Effect: You remember the thing that stands out.", "Law of Proximity: Objects near each other seem related."];
+    const laws = ["Fitts's Law: Target size & distance matter.", "Hick's Law: More choices = more time.", "Jakob's Law: Users like familiar things.", "Zeigarnik Effect: We remember unfinished tasks.", "Aesthetic-Usability Effect: Pretty equals easy.", "Von Restorff Effect: The odd one stands out.", "Law of Proximity: Near things feel related."];
     document.getElementById('law-txt').innerText = laws[new Date().getDay()];
 
     let td = new Date().toISOString().split('T')[0];
@@ -194,7 +230,7 @@
       st.tk.forEach(t=>{
         let r=document.createElement('div'); r.className='tsk click'; r.style.opacity=t.d?'0.5':'1';
         r.onclick=(e)=>{if(e.target.tagName!=='B'){t.d=!t.d; plySnd(t.d?1200:800, 'sine', 0.1); if(t.d)lgA(1); sv(); rT();}};
-        r.innerHTML=`<div style="display:flex;align-items:center;flex:1"><div class="chk ${t.d?'done':''}"><div style="margin-bottom:2px"></div></div><span class="tag ${t.y==='ui'?'t-ui':'t-un'}">${t.y.toUpperCase()}</span><span style="${t.d?'text-decoration:line-through':''}">${t.t}</span></div><b class="click" style="color:#888; padding:5px;" onclick="dT(${t.id})">×</b>`;
+        r.innerHTML=`<div style="display:flex;align-items:center;flex:1"><div class="chk ${t.d?'done':''}"><div style="margin-bottom:2px"></div></div><span class="tag ${t.y==='ui'?'t-ui':'t-un'}">${t.y.toUpperCase()}</span><span style="${t.d?'text-decoration:line-through'; overflow-wrap:anywhere;}">${t.t}</span></div><b class="click" style="color:#888; padding:5px; margin-left:10px;" onclick="dT(${t.id})">×</b>`;
         c.appendChild(r);
       }); uDC(); bindCursor(); updChart();
     }
@@ -206,8 +242,8 @@
     function rJ(){
       let c=document.getElementById('jb-ls'); c.innerHTML='';
       st.jb.forEach(j=>{
-        let r=document.createElement('div'); r.className='tsk'; r.style.borderColor='#0003';
-        r.innerHTML=`<span style="flex:1;font-weight:600">${j.t}</span><div><span class="click tag" style="${jM[j.s].c}" onclick="cJ(${j.id})">${jM[j.s].t}</span><b class="click" style="color:#888;margin-left:10px" onclick="dJ(${j.id})">×</b></div>`;
+        let r=document.createElement('div'); r.className='tsk'; r.style.borderColor='#0003'; r.style.flexWrap='wrap';
+        r.innerHTML=`<span style="flex:1;font-weight:600;min-width:100px;overflow-wrap:anywhere;">${j.t}</span><div style="display:flex;align-items:center;"><span class="click tag" style="${jM[j.s].c}" onclick="cJ(${j.id})">${jM[j.s].t}</span><b class="click" style="color:#888;margin-left:10px;padding:5px;" onclick="dJ(${j.id})">×</b></div>`;
         c.appendChild(r);
       }); bindCursor();
     }
@@ -220,8 +256,8 @@
       let c = document.getElementById('ev-ls'); c.innerHTML='';
       let evs = st.cal.sort((a,b) => new Date(a.dt) - new Date(b.dt)); 
       evs.forEach(e => {
-        let r = document.createElement('div'); r.className='tsk';
-        r.innerHTML = `<span class="tag t-dt">${e.dt}</span><span style="flex:1; margin-left:8px; font-weight:600;">${e.t}</span><b class="click" style="color:#888; padding:5px;" onclick="dE(${e.id})">×</b>`;
+        let r = document.createElement('div'); r.className='tsk'; r.style.flexWrap='wrap';
+        r.innerHTML = `<span class="tag t-dt">${e.dt}</span><span style="flex:1; margin-left:8px; font-weight:600; overflow-wrap:anywhere; min-width:100px;">${e.t}</span><b class="click" style="color:#888; padding:5px; margin-left:10px;" onclick="dE(${e.id})">×</b>`;
         c.appendChild(r);
       }); bindCursor();
     }
