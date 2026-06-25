@@ -97,18 +97,142 @@
     const actx = new (window.AudioContext || window.webkitAudioContext)();
     function plySnd() {}
     const td = new Date().toISOString().split('T')[0];
-    let st = JSON.parse(localStorage.getItem('ux_os')) || { tk: [], hr: 0, ht: {}, pad: '', cal: [], jb: [], trk: [] };
+    let st = JSON.parse(localStorage.getItem('ux_os')) || { tk: [], hr: 0, ht: {}, pad: '', cal: [], jb: [], trk: [], hab: [], wk: {}, stats: { nofap: { start: td }, moduleTotal: 0, codedexTotal: 0, wins: '', streak: 0 } };
     if(!st.ht) st.ht = {};
     if(!st.pad) st.pad = '';
     if(!st.cal) st.cal = [];
     if(!st.jb) st.jb = [];
     if(!st.trk) st.trk = [];
+    if(!st.hab) st.hab = [];
+    if(!st.wk) st.wk = {};
+    if(!st.stats) st.stats = { nofap: { start: td }, moduleTotal: 0, codedexTotal: 0, wins: '', streak: 0 };
+    if(!st.stats.nofap) st.stats.nofap = { start: td };
+    if(typeof st.stats.moduleTotal !== 'number') st.stats.moduleTotal = 0;
+    if(typeof st.stats.codedexTotal !== 'number') st.stats.codedexTotal = 0;
+    if(typeof st.stats.wins !== 'string') st.stats.wins = '';
+    if(typeof st.stats.streak !== 'number') st.stats.streak = 0;
 
-    function sv() { localStorage.setItem('ux_os', JSON.stringify(st)); upd(); }
+    const habitDefs = [
+      'Prayer', 'Wake up 6am', 'Cold shower', 'Gym / walk', 'Coursera module',
+      'Codedex HTML/CSS', 'Figma practice', 'BBA exam prep', 'Sleep by 10:30pm', 'Nofap'
+    ];
+    const weeklyGoals = [
+      { key: 'modules', label: 'Modules completed this week', target: 3 },
+      { key: 'codedex', label: 'Codedex lessons done', target: 0 },
+      { key: 'figma', label: 'Figma practice sessions', target: 0 },
+      { key: 'bba', label: 'BBA subjects covered', target: 0 }
+    ];
+    const milestones = [
+      { range: 'June-August', items: ['IBM Certificate', 'HTML/CSS basics', 'Figma basics'] },
+      { range: 'August-October', items: ['Google UX Certificate', 'Behance profile', '3 Frontend Mentor projects'] },
+      { range: 'October-December', items: ['JavaScript 30', '2 case studies', 'first client'] },
+      { range: 'January-March', items: ['Portfolio live', '10+ GitHub projects', 'job applications'] }
+    ];
+    const deadlines = [
+      { date: '2026-07-08', label: 'BBA exams start' },
+      { date: '2026-07-20', label: 'BBA exams end' },
+      { date: '2026-08-15', label: 'IBM course done' },
+      { date: '2026-10-01', label: 'Google UX certificate done' },
+      { date: '2026-11-30', label: 'JavaScript 30 complete' },
+      { date: '2026-12-31', label: 'First free client project' },
+      { date: '2027-01-31', label: 'Portfolio website live' },
+      { date: '2027-03-31', label: 'Job/freelance ready' }
+    ];
+    const marchDeadline = new Date('2027-03-31T23:59:59');
 
+    function sv() { localStorage.setItem('ux_os', JSON.stringify(st)); upd(); renderAll(); }
     const padEl = document.getElementById('pad');
     padEl.value = st.pad;
     padEl.addEventListener('input', e => { st.pad = e.target.value; sv(); });
+
+    function renderHabitTracker() {
+      const c = document.getElementById('hab-ls');
+      if(!c) return;
+      c.innerHTML = '';
+      habitDefs.forEach(name => {
+        const item = st.hab.find(x => x.name === name) || { name, checked: false };
+        const row = document.createElement('div');
+        row.className = 'tsk click';
+        row.style.opacity = item.checked ? '0.55' : '1';
+        row.innerHTML = `<div style="display:flex;align-items:center;gap:10px;flex:1"><div class="chk ${item.checked ? 'done' : ''}"></div><span style="font-weight:600;overflow-wrap:anywhere;">${name}</span></div><b class="click">${item.checked ? 'DONE' : 'TAP'}</b>`;
+        row.onclick = () => toggleHabit(name);
+        c.appendChild(row);
+      });
+    }
+
+    function toggleHabit(name) {
+      let item = st.hab.find(x => x.name === name);
+      if(!item) { item = { name, checked: false }; st.hab.push(item); }
+      item.checked = !item.checked;
+      if(item.checked) {
+        st.stats.streak = (st.stats.streak || 0) + 1;
+        if(name === 'Nofap') {
+          const start = new Date(st.stats.nofap?.start || td);
+          const diff = Math.max(0, Math.floor((new Date(td) - start) / 86400000));
+          st.stats.nofap.days = diff + 1;
+        }
+      }
+      sv();
+    }
+
+    function renderWeeklyGoals() {
+      const c = document.getElementById('wk-ls');
+      if(!c) return;
+      c.innerHTML = '';
+      weeklyGoals.forEach(g => {
+        const val = Number(st.wk[g.key] || 0);
+        const row = document.createElement('div');
+        row.className = 'tsk';
+        row.innerHTML = `<span style="flex:1;font-weight:600;overflow-wrap:anywhere;">${g.label}</span><div style="display:flex;align-items:center;gap:8px;"><input data-wk="${g.key}" type="number" min="0" value="${val}" style="width:72px;background:transparent;border:1px solid #444;color:var(--txt);padding:6px;font-family:'Space Mono';"><span class="tag">${g.target ? `TARGET ${g.target}` : 'TRACK'}</span></div>`;
+        row.querySelector('input').addEventListener('input', e => { st.wk[g.key] = Number(e.target.value || 0); sv(); });
+        c.appendChild(row);
+      });
+    }
+
+    function renderMilestones() {
+      const c = document.getElementById('ms-ls');
+      if(!c) return;
+      c.innerHTML = '';
+      milestones.forEach(m => {
+        const block = document.createElement('div');
+        block.className = 'tsk';
+        block.style.flexDirection = 'column';
+        block.style.alignItems = 'flex-start';
+        block.innerHTML = `<div style="display:flex;justify-content:space-between;width:100%;gap:8px;"><span class="tag">${m.range}</span></div><div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;width:100%;">${m.items.map(i => `<span>• ${i}</span>`).join('')}</div>`;
+        c.appendChild(block);
+      });
+    }
+
+    function renderDeadlines() {
+      const c = document.getElementById('dl-ls');
+      if(!c) return;
+      c.innerHTML = '';
+      deadlines.forEach(d => {
+        const diff = Math.ceil((new Date(d.date + 'T23:59:59') - new Date()) / 86400000);
+        const row = document.createElement('div');
+        row.className = 'tsk';
+        row.style.flexWrap = 'wrap';
+        row.innerHTML = `<span class="tag">${d.date}</span><span style="flex:1;font-weight:600;overflow-wrap:anywhere;">${d.label}</span><b>${diff >= 0 ? `${diff}d` : 'past'}</b>`;
+        c.appendChild(row);
+      });
+    }
+
+    function renderStatsCards() {
+      const c = document.getElementById('stats-ls');
+      if(!c) return;
+      const daysToMarch = Math.max(0, Math.ceil((marchDeadline - new Date()) / 86400000));
+      const nofapDays = Number(st.stats.nofap?.days || 0);
+      const totalModules = Number(st.stats.moduleTotal || 0);
+      const totalCodedex = Number(st.stats.codedexTotal || 0);
+      c.innerHTML = `
+        <div class="tsk"><span>Current day streak</span><b>${st.stats.streak || 0}</b></div>
+        <div class="tsk"><span>Days remaining to March 2027</span><b>${daysToMarch}</b></div>
+        <div class="tsk"><span>Nofap streak</span><b>${nofapDays}</b></div>
+        <div class="tsk"><span>Total modules completed</span><b>${totalModules}</b></div>
+        <div class="tsk"><span>Total Codedex lessons done</span><b>${totalCodedex}</b></div>
+      `;
+      document.getElementById('wins-txt').value = st.stats.wins || '';
+    }
 
     function rT() {
       const c = document.getElementById('tk-ls');
@@ -172,7 +296,7 @@
     window.dE = (id) => { st.cal = st.cal.filter(x => x.id !== id); sv(); rE(); };
     window.expD = () => { const b = new Blob([JSON.stringify(st)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'uiux_os_backup.json'; a.click(); };
     window.impD = () => document.getElementById('f-imp').click();
-    document.getElementById('f-imp').addEventListener('change', e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => { try { st = JSON.parse(ev.target.result); sv(); padEl.value = st.pad || ''; rT(); rTR(); rJ(); rE(); } catch(_) {} }; r.readAsText(f); });
+    document.getElementById('f-imp').addEventListener('change', e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => { try { st = JSON.parse(ev.target.result); sv(); padEl.value = st.pad || ''; rT(); rTR(); rJ(); rE(); renderAll(); } catch(_) {} }; r.readAsText(f); });
 
     function lgA(p) { st.ht[td] = (st.ht[td] || 0) + p; if(st.ht[td] > 4) st.ht[td] = 4; sv(); }
     function upd() {
@@ -182,6 +306,8 @@
       document.getElementById('lvl-txt').innerText = `LVL ${lvl.toString().padStart(2,'0')}`;
       document.getElementById('xp-bar').style.width = `${pct}%`;
       document.getElementById('st-hr').innerText = st.hr.toFixed(1) + 'H';
+      const wins = document.getElementById('wins-txt');
+      if(wins) st.stats.wins = wins.value;
     }
 
     function rH(){ const c = document.getElementById('ht'); c.innerHTML = ''; const d = new Date(); for(let i = 83; i >= 0; i--){ const nd = new Date(d); nd.setDate(nd.getDate() - i); const s = nd.toISOString().split('T')[0]; const val = st.ht[s] || 0; const hb = document.createElement('div'); hb.className = 'hb ' + (val === 1 ? 'h1' : val === 2 ? 'h2' : val === 3 ? 'h3' : val === 4 ? 'h4' : ''); c.appendChild(hb); } }
@@ -191,10 +317,19 @@
     function uDC(){ let u=0,n=0; st.tk.forEach(t=>{t.y==='ui'?u++:n++;}); dC.data.datasets[0].data = [Math.max(u,1), Math.max(n,1)]; dC.update(); }
     function updChart(){ if(lC){ lC.data.datasets[0].data[6] = st.tk.filter(x=>x.d).length; lC.data.datasets[1].data[6] = st.hr; lC.update(); } }
 
+    function renderAll() {
+      renderHabitTracker();
+      renderWeeklyGoals();
+      renderMilestones();
+      renderDeadlines();
+      renderStatsCards();
+      rT(); rTR(); rE(); rJ(); rH(); upd(); uDC();
+    }
+
     document.getElementById('dt').innerText = new Date().toLocaleDateString('en-GB').replace(/\//g,'.');
     const laws = ["Fitts's Law: Target size & distance matter.", "Hick's Law: More choices = more time.", "Jakob's Law: Users like familiar things.", "Zeigarnik Effect: We remember unfinished tasks."];
     document.getElementById('law-txt').innerText = laws[new Date().getDay() % laws.length];
-    rT(); rTR(); rE(); rJ(); rH(); upd(); uDC();
+    renderAll();
   </script>
 </body>
 </html>
