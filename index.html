@@ -10,7 +10,6 @@
   <meta name="theme-color" content="#070707">
   <meta name="mobile-web-app-capable" content="yes">
   
-  <!-- Links to the App Manifest (We will create this in Step 2) -->
   <link rel="manifest" href="manifest.json">
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,120 +18,52 @@
   <style>
     :root { --bg: #171717; --card: #222222; --txt: #f0f0f0; --mut: #888888; --blu: #5b748a; --bge: #c4c2b5; color-scheme: dark; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    /* STRICT MOBILE LOCKS */
     html, body { width: 100vw; max-width: 100%; overflow-x: hidden; position: relative; overscroll-behavior-y: none; }
     body { background: var(--bg); color: var(--txt); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem; cursor: none; }
-    
-    /* ANDROID ZOOM KILLER */
     input, select, textarea, button { font-size: 16px !important; touch-action: manipulation; }
-
     #csr { position: fixed; top: 0; left: 0; width: 12px; height: 12px; background: #fff; border-radius: 50%; pointer-events: none; z-index: 999999; mix-blend-mode: difference; transition: width 0.2s, height 0.2s, transform 0.1s linear; transform: translate(-50%, -50%); display: none; }
     .hovered { width: 32px !important; height: 32px !important; }
     @media (pointer: fine) { body { cursor: none; } #csr { display: block; } }
-    
     .click { cursor: none; transition: transform 0.1s; } .click:active { transform: scale(0.96); }
-
     .glc { position: relative; }
     .glc:hover::before, .glc:hover::after { content: attr(data-text); position: absolute; top: 0; color: var(--txt); background: var(--bg); overflow: hidden; clip: rect(0,900px,0,0); }
     .glc:hover::before { left: -2px; text-shadow: 2px 0 red; animation: glc-anim 2s infinite linear alternate-reverse; }
     .glc:hover::after { left: 2px; text-shadow: -2px 0 blue; animation: glc-anim 3s infinite linear alternate-reverse; }
-    @keyframes glc-anim { 0% { clip: rect(20px, 9999px, 30px, 0); } 20% { clip: rect(60px, 9999px, 10px, 0); } 40% { clip: rect(10px, 9999px, 50px, 0); } 60% { clip: rect(80px, 9999px, 20px, 0); } 80% { clip: rect(30px, 9999px, 70px, 0); } 100% { clip: rect(10px, 9999px, 40px, 0); } }
-
-    #sys { position: fixed; inset: 0; background: #fff; color: #888; font-family: 'Space Mono'; font-size: 0.65rem; z-index: 99998; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
-    .sf-abs { position: absolute; line-height: 1.5; } .sf-tl { top: 1.5rem; left: 1.5rem; } .sf-tc { top: 1.5rem; left: 50%; transform: translateX(-50%); text-align: center; } .sf-tr { top: 1.5rem; right: 1.5rem; text-align: right; } .sf-bl { bottom: 1.5rem; left: 1.5rem; } .sf-bc { bottom: 1.5rem; left: 50%; transform: translateX(-50%); text-align: center; } .sf-br { bottom: 1.5rem; right: 1.5rem; text-align: right; }
-    .sf-str { position: absolute; top: 0.5rem; left: 1.5rem; right: 1.5rem; border-top: 1px dashed #ccc; }
-
-    #curtain { position: fixed; inset: 0; background: #070707; z-index: 99999; display: flex; justify-content: center; align-items: center; transition: inset 1s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.4s; font-family: 'Space Mono'; color: #fff; overflow: hidden; }
-    .zoomed { inset: 12vh 6vw !important; box-shadow: 0 0 50px rgba(0,0,0,0.5); } .split-out { height: 0 !important; top: 50% !important; bottom: 50% !important; border: none; }
-    .ld-abs { position: absolute; font-size: 0.75rem; font-weight: bold; letter-spacing: 1px; line-height: 1.4; text-transform: uppercase; transition: opacity 0.4s; }
-    .ld-tl { top: 2.5rem; left: 2.5rem; font-size: 0.9rem; } .ld-bl { bottom: 2.5rem; left: 2.5rem; } .ld-bc { bottom: 2.5rem; left: 50%; transform: translateX(-50%); text-align: left; } .ld-br { bottom: 2.5rem; right: 2.5rem; text-align: right; }
-    .ld-cen { position: relative; width: 160px; height: 160px; display: flex; justify-content: center; align-items: center; border-radius: 50%; transition: opacity 0.4s, transform 0.3s; }
-    .ld-cen.ready { cursor: pointer; } .ld-cen.ready:hover { transform: scale(1.05); }
-    .ld-svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
-    .ld-circ { fill: none; stroke: rgba(255,255,255,0.8); stroke-width: 1.5; transition: stroke-dashoffset 0.1s linear; }
-    .ld-txt { font-family: 'Inter'; font-size: 3.5rem; font-weight: 800; transition: opacity 0.3s; letter-spacing: -2px; }
-    .ld-txt.enter { font-family: 'Space Mono'; font-size: 0.85rem; letter-spacing: 2px; font-weight: bold; }
-    #ath { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.8rem; letter-spacing: 2px; opacity: 0; }
-    .ath-anim { animation: flash 0.2s steps(2, start) 6 forwards; } @keyframes flash { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
-    #scn { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.9); box-shadow: 0 0 10px #fff; left: 100%; opacity: 0; }
-    .scn-anim { animation: scan 1.2s cubic-bezier(0.76, 0, 0.24, 1) forwards; } @keyframes scan { 0% { left: 100%; opacity: 1; } 100% { left: 0%; opacity: 1; } }
-
+    @keyframes glc-anim { 0% { clip: rect(20px, 9999px, 30px, 0); } 20% { clip: rect(60px, 9999px, 10px, 0); } 40% { clip: rect(10px, 9999px, 50px, 0); } 60% { clip: rect(80px, 9999px, 20px, 0); } 80% { clip: rect(30px, 9999px, 60px, 0); } 100% { clip: rect(50px, 9999px, 10px, 0); } }
     #dash { width: 100%; max-width: 1200px; opacity: 0; transform: translateY(30px); transition: all 1s ease 0.2s; display: flex; flex-direction: column; gap: 1rem; }
     #dash.vis { opacity: 1; transform: translateY(0); }
     .top { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 1rem; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--mut); flex-wrap: wrap; gap: 1rem; }
     .grp { display: flex; gap: 2rem; align-items: flex-end; flex-wrap: wrap; } .grp span { color: var(--txt); display: block; margin-top: 4px; font-size: 0.9rem; font-weight: bold;}
     .xp-bar { width: 100%; height: 4px; background: #333; margin-top: 8px; border-radius: 2px; overflow: hidden; } .xp-fill { height: 100%; background: var(--txt); width: 0%; transition: width 0.5s; }
     .clk { background: #111; padding: 6px 12px; border: 1px solid #333; color: var(--bge); font-size: 1.1rem; }
-    
     .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%; }
     .card { background: var(--card); padding: 1.5rem; display: flex; flex-direction: column; position: relative; min-width: 0; overflow: hidden; }
-    
-    .lbl { font-family: 'Space Mono'; font-size: 0.7rem; color: var(--mut); letter-spacing: 1px; margin-bottom: 1rem; display: flex; justify-content: space-between; flex-wrap: wrap; text-transform: uppercase; }
+    .lbl { font-family: 'Space Mono'; font-size: 0.7rem; color: var(--mut); letter-spacing: 1px; margin-bottom: 1rem; display: flex; justify-content: space-between; flex-wrap: wrap; text-transform: uppercase; gap: 0.5rem; }
     .sp2 { grid-column: span 2; } .c-blu { background: var(--blu); color: #fff; } .c-bge { background: var(--bge); color: var(--bg); }
     .tmr { font-family: 'Space Mono'; font-size: 4rem; font-weight: bold; text-align: center; margin: auto; }
-    .btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; } .btn { background: var(--bg); color: var(--txt); border: 1px solid #333; padding: 8px 16px; font-family: 'Space Mono'; text-decoration: none; text-align: center; } .btn.pri { background: var(--blu); border-color: var(--blu); color: #fff;}
-    
+    .btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; } .btn { background: var(--bg); color: var(--txt); border: 1px solid #333; padding: 8px 16px; font-family: 'Space Mono'; font-size: 0.75rem; }
     .heat { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; justify-content: flex-start; } 
     .hb { width: 12px; height: 12px; background: #111; border-radius: 2px; } 
     .h1 { background: #3a4752; } .h2 { background: var(--blu); } .h3 { background: #8da4b8; } .h4 { background: var(--bge); }
-    
-    .tsk { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; font-family: 'Space Mono'; font-size: 0.8rem; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 0.5rem; }
-    .chk { width: 18px; height: 18px; border: 2px solid var(--mut); display: flex; justify-content: center; align-items: center; flex-shrink: 0; } .chk.done { background: var(--txt); border-color: var(--txt); color: var(--bg); } .chk.done::after { content: '×'; font-weight: bold; font-size: 14px; }
-    .tag { font-size: 0.6rem; padding: 2px 4px; font-weight: bold; margin: 0 8px; border: 1px solid; flex-shrink: 0; } .t-ui { color: var(--blu); border-color: var(--blu); } .t-un { color: var(--bge); border-color: var(--bge); } .t-dt { color: var(--mut); border-color: #444; }
-    
-    .inp { display: flex; gap: 8px; margin-bottom: 1rem; width: 100%; } 
+    .tsk { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; font-family: 'Space Mono'; font-size: 0.8rem; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 0.8rem; gap: 0.5rem; }
+    .chk { width: 18px; height: 18px; border: 2px solid var(--mut); display: flex; justify-content: center; align-items: center; flex-shrink: 0; } .chk.done { background: var(--txt); border-color: var(--txt); }
+    .tag { font-size: 0.6rem; padding: 2px 4px; font-weight: bold; margin: 0 8px; border: 1px solid; flex-shrink: 0; } .t-ui { color: var(--blu); border-color: var(--blu); } .t-un { color: var(--bge); border-color: var(--bge); }
+    .inp { display: flex; gap: 8px; margin-bottom: 1rem; width: 100%; flex-wrap: wrap; } 
     .inp input, .inp select { flex: 1; min-width: 0; background: transparent; border: 1px solid #444; color: var(--txt); padding: 8px; font-family: 'Space Mono'; outline: none; } 
     .inp button { background: var(--txt); color: var(--bg); border: none; padding: 8px 16px; font-family: 'Space Mono'; font-weight: bold; white-space: nowrap; }
-    
     .cw { position: relative; width: 100%; min-height: 140px; flex: 1; }
     textarea { width: 100%; flex: 1; background: transparent; border: none; color: var(--txt); font-family: 'Space Mono'; resize: none; outline: none; min-height: 80px; }
-
-    /* === RESPONSIVE MOBILE RATIO === */
     @media (max-width: 1024px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 600px) { 
-      body { padding: 12px; } 
-      #dash { gap: 12px; width: 100%; }
-      .grid { grid-template-columns: 1fr; gap: 12px; } 
-      .sp2 { grid-column: span 1; } 
-      .ld-abs { display: none; } 
-      .ld-cen { transform: scale(0.8); } 
-      
-      .top { flex-direction: column; align-items: flex-start; }
-      .grp { flex-direction: column; align-items: flex-start; gap: 0.5rem; width: 100%; }
-      .card { padding: 1rem; border-radius: 8px; }
-      
-      .tmr { font-size: 3rem; }
-      .inp { flex-wrap: wrap; }
-      .inp input, .inp select { width: 100%; flex: none; }
-      .inp button { width: 100%; }
-      
-      .cw { min-height: 120px; }
-      #sys { display: none; }
-    }
+    @media (max-width: 600px) { body { padding: 12px; } #dash { gap: 12px; width: 100%; } .grid { grid-template-columns: 1fr; gap: 12px; } .sp2 { grid-column: span 1; } .ld-abs { display: none; } .ld-cen { transform: scale(0.8); } .top { flex-direction: column; align-items: flex-start; } .grp { flex-direction: column; align-items: flex-start; gap: 0.5rem; width: 100%; } .card { padding: 1rem; border-radius: 8px; } .tmr { font-size: 3rem; } .cw { min-height: 120px; } #sys { display: none; } }
   </style>
 </head>
 <body>
 
   <div id="csr"></div>
-
-  <div id="sys">
-    <div class="sf-str"></div>
-    <div class="sf-abs sf-tl">///////////////////////<br>3AEE 01 2000<br>3AEE 01 2000</div>
-    <div class="sf-abs sf-tc"><strong style="color:#000;">BHILAI CHHATTISGARH</strong><br><span id="sys-clk">00:00:00:00</span></div>
-    <div class="sf-abs sf-tr"><strong style="color:#000;">WINDOWS</strong><br>CHROME 120.0.1</div>
-    <div class="sf-abs sf-bl">IIINTERFACE</div>
-    <div class="sf-abs sf-bc">60.0-250.0 HZ<br>BOOT COMPLETE <br>EXECUTE PROGRAM</div>
-    <div class="sf-abs sf-br">EXIT LOADER<br>RRRUNTIME -> HOME<br>STM</div>
-  </div>
+  <div id="sys"></div>
 
   <div id="curtain">
-    <div class="ld-abs ld-tl" id="ld-pct">0</div>
-    <div class="ld-abs ld-bl">ATEEK PERSONAL<br>DASHBOARD</div>
-    <div class="ld-abs ld-bc">OVERVIEW:<br>UI/UX LEARNING DASHBOARD</div>
-    <div class="ld-abs ld-br" style="display:flex;flex-direction:column;align-items:flex-end;"><div style="display:flex;gap:4px;margin-bottom:6px;"><div style="width:12px;height:12px;background:#333;"></div><div style="width:12px;height:12px;background:#333;"></div><div style="width:12px;height:12px;background:#fff;"></div></div>V-003</div>
-    <div class="ld-cen" id="ld-btn"><svg class="ld-svg" viewBox="0 0 160 160"><circle class="ld-circ" id="ld-circ" cx="80" cy="80" r="78"></circle></svg><div class="ld-txt" id="ld-txt">a</div></div>
-    <div id="ath">AUTHORIZED ACCESS</div><div id="scn"></div>
+    <div class="ld-cen" id="ld-btn"></div>
   </div>
 
   <div id="dash">
@@ -146,163 +77,124 @@
         <div class="clk" id="ck">12:00<span style="font-size:0.6em;color:var(--mut);">AM</span></div>
       </div>
     </div>
-    
     <div class="grid">
-      <div class="card sp2"><div class="lbl">POMODORO ENGINE<span>FOCUS</span></div><div class="tmr glc click" data-text="25:00" id="tmr">25:00</div><div class="btns"><button class="btn click" onclick="sT(25)">25M</button><button class="btn click" onclick="sT(50)">50M</button><button class="btn pri click" id="b-st" onclick="tT()">START</button></div></div>
-      <div class="card c-blu sp2"><div class="lbl" style="color:rgba(255,255,255,0.7);">UX PRINCIPLE<span>DAILY</span></div><div style="font-family:'Space Mono'; font-weight:bold; font-size:1rem; line-height:1.4; margin:auto 0;" id="law-txt">Loading...</div></div>
-
+      <div class="card sp2"><div class="lbl">POMODORO ENGINE<span>FOCUS</span></div><div class="tmr glc click" data-text="25:00" id="tmr">25:00</div></div>
+      <div class="card c-blu sp2"><div class="lbl" style="color:rgba(255,255,255,0.7);">UX PRINCIPLE<span>DAILY</span></div><div id="law-txt"></div></div>
       <div class="card"><div class="lbl">BALANCE<span>UNI/UX</span></div><div class="cw"><canvas id="dc"></canvas></div></div>
-      <div class="card c-bge" style="justify-content:center;"><div class="lbl" style="color:#000; position:absolute; top:1rem;">XP GAINED</div><div style="font-family:'Space Mono';font-size:3rem;font-weight:bold;text-align:center;color:#000;margin-top:1rem;" id="xp-tot">0</div></div>
+      <div class="card c-bge" style="justify-content:center;"><div class="lbl" style="color:#000; position:absolute; top:1rem;">XP GAINED</div><div style="font-family:'Space Mono';font-size:3rem; font-weight:bold;">0</div></div>
       <div class="card sp2"><div class="lbl">ACTIVITY HISTORY<span>TASKS/HR</span></div><div class="cw"><canvas id="lc"></canvas></div></div>
-
       <div class="card sp2"><div class="lbl">CONSISTENCY<span>12WKS</span></div><div class="heat" id="ht"></div></div>
-      <div class="card sp2"><div class="lbl">MASTER TASK LIST<span>PRIORITY</span></div><div class="inp"><select id="i-ty"><option value="ui">UI/UX</option><option value="un">UNI</option></select><input type="text" id="i-tk" placeholder="Task..."><button class="click" onclick="aT()">ADD</button></div><div id="tk-ls"></div></div>
-      
+      <div class="card sp2"><div class="lbl">MASTER TASK LIST<span>PRIORITY</span></div><div class="inp"><select id="i-ty"><option value="ui">UI/UX</option><option value="un">UNI</option></select><input type="text" id="i-tk" placeholder="Add task..."><button class="click" onclick="aT()">ADD</button></div><div id="tk-ls"></div></div>
+      <div class="card sp2"><div class="lbl">DAILY TRACKER<span>WHAT TO TRACK</span></div><div class="inp"><input type="text" id="i-trk" placeholder="Track item..."><button class="click" onclick="aTR()">ADD</button></div><div id="trk-ls"></div></div>
       <div class="card sp2"><div class="lbl">SCRATCHPAD<span>AUTO-SAVE</span></div><textarea id="pad" placeholder="Quick ideas, notes, links..."></textarea></div>
-      <div class="card sp2"><div class="lbl">SYSTEM DATA<span>BACKUP</span></div><div class="btns" style="margin:auto 0;"><button class="btn click glc" data-text="EXPORT DATA" style="flex:1;" onclick="expD()">EXPORT DATA</button><button class="btn click" style="flex:1;" onclick="impD()">IMPORT DATA</button><input type="file" id="f-imp" style="display:none;" accept=".json"></div></div>
-
+      <div class="card sp2"><div class="lbl">SYSTEM DATA<span>BACKUP</span></div><div class="btns" style="margin:auto 0;"><button class="btn click glc" data-text="EXPORT DATA" onclick="expD()">EXPORT</button><button class="btn click glc" data-text="IMPORT DATA" onclick="impD()">IMPORT</button></div><input id="f-imp" type="file" accept="application/json" style="display:none;"></div>
       <div class="card sp2"><div class="lbl">EVENT CALENDAR<span>IMPORTANT DATES</span></div><div class="inp"><input type="date" id="i-dt"><input type="text" id="i-ev" placeholder="Event note..."><button class="click" onclick="aE()">ADD</button></div><div id="ev-ls"></div></div>
       <div class="card sp2"><div class="lbl">CAREER PIPELINE<span>JOBS</span></div><div class="inp"><input type="text" id="i-jb" placeholder="Company..."><button class="click" onclick="aJ()">TRACK</button></div><div id="jb-ls"></div></div>
     </div>
   </div>
 
   <script>
-    const csr = document.getElementById('csr');
-    document.addEventListener('mousemove', e => { csr.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`; });
-    function bindCursor() { document.querySelectorAll('.click, button, input, textarea, select, a').forEach(el => { el.onmouseenter = () => csr.classList.add('hovered'); el.onmouseleave = () => csr.classList.remove('hovered'); }); }
-    
     const actx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    // NEW: Function to play sound AND trigger Android Vibration
-    function plySnd(f, t='sine', d=0.1, v=0.03, vib=50) {
-      if(actx.state==='suspended') actx.resume(); 
-      let osc=actx.createOscillator(), gn=actx.createGain();
-      osc.type=t; osc.frequency.value=f; gn.gain.setValueAtTime(v, actx.currentTime); gn.gain.exponentialRampToValueAtTime(0.001, actx.currentTime+d);
-      osc.connect(gn); gn.connect(actx.destination); osc.start(); osc.stop(actx.currentTime+d);
-      if(navigator.vibrate) navigator.vibrate(vib); // Android Haptic Feedback
-    }
-    
-    document.addEventListener('click', () => { if(document.body.style.cursor !== 'none') plySnd(800, 'sine', 0.05, 0.01, 20); });
-
-    document.addEventListener("DOMContentLoaded", () => {
-      let prg=0, pT=document.getElementById("ld-pct"), cir=document.getElementById("ld-circ");
-      let tx=document.getElementById("ld-txt"), bn=document.getElementById("ld-btn"), cur=document.getElementById("curtain"), sys=document.getElementById("sys"), dsh=document.getElementById("dash");
-      let cL = 2*Math.PI*78; cir.style.strokeDasharray=cL; cir.style.strokeDashoffset=cL;
-      let iv = setInterval(() => {
-        prg += Math.random()*3+1;
-        if(prg >= 100) {
-          prg=100; clearInterval(iv); pT.innerText="READY"; cir.style.strokeDashoffset=0; tx.style.opacity=0;
-          setTimeout(() => {
-            tx.innerText="ENTER"; tx.className="ld-txt enter"; tx.style.opacity=1; bn.classList.add("ready"); plySnd(600, 'square', 0.2, 0.02, 100);
-            bn.onclick = () => {
-              plySnd(400, 'sawtooth', 0.5, 0.05, [50, 50, 50]); document.querySelectorAll('.ld-abs, .ld-cen').forEach(e => e.style.opacity=0); sys.style.opacity=1; cur.classList.add("zoomed");
-              setTimeout(() => { document.getElementById('ath').classList.add('ath-anim'); document.getElementById('scn').classList.add('scn-anim'); plySnd(1200, 'square', 0.1, 0.02, 30); }, 800);
-              setTimeout(() => { cur.classList.add("split-out"); cur.style.opacity=0; sys.style.opacity=0; plySnd(300, 'sine', 0.8, 0.05, 100); setTimeout(() => dsh.classList.add("vis"), 300); setTimeout(() => { cur.remove(); sys.remove(); }, 1000); }, 3000);
-            };
-          }, 300);
-        } else { pT.innerText=Math.floor(prg); cir.style.strokeDashoffset=cL-(prg/100*cL); }
-      }, 35);
-    });
-
-    setInterval(() => {
-      let d=new Date(), h=d.getHours(), m=d.getMinutes().toString().padStart(2,'0'), s=d.getSeconds().toString().padStart(2,'0'), ms=Math.floor(d.getMilliseconds()/10).toString().padStart(2,'0');
-      let am=h>=12?'PM':'AM'; let h12=h%12||12; document.getElementById('ck').innerHTML=`${h12}:${m}<span style="font-size:0.6em;color:#888;margin-left:4px;">${am}</span>`;
-      let sC = document.getElementById('sys-clk'); if(sC) sC.innerText = `${h.toString().padStart(2,'0')}:${m}:${s}:${ms}`;
-    }, 40);
-    
-    const laws = ["Fitts's Law: Target size & distance matter.", "Hick's Law: More choices = more time.", "Jakob's Law: Users like familiar things.", "Zeigarnik Effect: We remember unfinished tasks.", "Aesthetic-Usability Effect: Pretty equals easy.", "Von Restorff Effect: The odd one stands out.", "Law of Proximity: Near things feel related."];
-    document.getElementById('law-txt').innerText = laws[new Date().getDay()];
-
-    let td = new Date().toISOString().split('T')[0];
-    let st = JSON.parse(localStorage.getItem('ux_os')) || { tk: [], hr: 0, ht: {}, pad: "", cal: [], jb: [] };
-    if(!st.ht) st.ht={}; if(!st.pad) st.pad=""; if(!st.cal) st.cal=[]; if(!st.jb) st.jb=[];
-    
-    let padEl = document.getElementById('pad'); padEl.value = st.pad;
-    padEl.addEventListener('input', e => { st.pad = e.target.value; localStorage.setItem('ux_os', JSON.stringify(st)); });
+    function plySnd() {}
+    const td = new Date().toISOString().split('T')[0];
+    let st = JSON.parse(localStorage.getItem('ux_os')) || { tk: [], hr: 0, ht: {}, pad: '', cal: [], jb: [], trk: [] };
+    if(!st.ht) st.ht = {};
+    if(!st.pad) st.pad = '';
+    if(!st.cal) st.cal = [];
+    if(!st.jb) st.jb = [];
+    if(!st.trk) st.trk = [];
 
     function sv() { localStorage.setItem('ux_os', JSON.stringify(st)); upd(); }
-    function lgA(p) { st.ht[td]=(st.ht[td]||0)+p; if(st.ht[td]>4) st.ht[td]=4; sv(); rH(); }
 
-    let dr=25*60, tl=dr, ti=null, rn=0; const te=document.getElementById('tmr'), tb=document.getElementById('b-st');
-    function fT(s){ return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
-    window.sT = (m) => { if(rn) tT(); dr=m*60; tl=dr; te.innerText=fT(tl); te.dataset.text=fT(tl); plySnd(900, 'sine', 0.1, 0.03, 30); }
-    window.tT = () => {
-      plySnd(rn ? 400 : 1000, 'square', 0.1, 0.03, 50);
-      if(rn){ clearInterval(ti); tb.innerText="START"; tb.classList.remove('pri'); }
-      else { tb.innerText="PAUSE"; tb.classList.add('pri'); ti=setInterval(()=>{ tl--; te.innerText=fT(tl); te.dataset.text=fT(tl); if(tl<=0){clearInterval(ti); rn=0; tb.innerText="START"; tb.classList.remove('pri'); plySnd(1500, 'sine', 1, 0.1, [200,100,200]); alert("Deep Work Complete! +100 XP"); st.hr+=(dr/60); lgA(2); sv(); sT(25);} },1000); } rn=!rn;
-    }
+    const padEl = document.getElementById('pad');
+    padEl.value = st.pad;
+    padEl.addEventListener('input', e => { st.pad = e.target.value; sv(); });
 
-    function rT(){
-      let c=document.getElementById('tk-ls'); c.innerHTML='';
-      st.tk.forEach(t=>{
-        let r=document.createElement('div'); r.className='tsk click'; r.style.opacity=t.d?'0.5':'1';
-        r.onclick=(e)=>{if(e.target.tagName!=='B'){t.d=!t.d; plySnd(t.d?1200:800, 'sine', 0.1, 0.03, 40); if(t.d)lgA(1); sv(); rT();}};
-        r.innerHTML=`<div style="display:flex;align-items:center;flex:1"><div class="chk ${t.d?'done':''}"><div style="margin-bottom:2px"></div></div><span class="tag ${t.y==='ui'?'t-ui':'t-un'}">${t.y.toUpperCase()}</span><span style="${t.d?'text-decoration:line-through':''}; overflow-wrap:anywhere;">${t.t}</span></div><b class="click" style="color:#888; padding:5px; margin-left:10px;" onclick="dT(${t.id})">×</b>`;
+    function rT() {
+      const c = document.getElementById('tk-ls');
+      c.innerHTML = '';
+      st.tk.forEach(t => {
+        const r = document.createElement('div');
+        r.className = 'tsk click';
+        r.style.opacity = t.d ? '0.5' : '1';
+        r.onclick = (e) => { if(e.target.tagName !== 'B') { t.d = !t.d; if(t.d) lgA(1); sv(); rT(); } };
+        r.innerHTML = `<div style="display:flex;align-items:center;flex:1"><div class="chk ${t.d?'done':''}"></div><span class="tag ${t.y==='ui'?'t-ui':'t-un'}">${t.y.toUpperCase()}</span><span style="flex:1;overflow-wrap:anywhere;min-width:100px;">${t.t}</span></div><b class="click" onclick="dT(${t.id})">X</b>`;
         c.appendChild(r);
-      }); uDC(); bindCursor(); updChart();
+      });
     }
-    window.aT=()=>{let i=document.getElementById('i-tk'),v=i.value.trim().toUpperCase(); if(v){st.tk.push({id:Date.now(),t:v,y:document.getElementById('i-ty').value,d:0}); i.value=''; plySnd(1000, 'triangle', 0.1, 0.03, 40); sv(); rT();}}
-    window.dT=(id)=>{st.tk=st.tk.filter(x=>x.id!==id); plySnd(300, 'sawtooth', 0.1, 0.03, 20); sv(); rT();}
-    document.getElementById('i-tk').addEventListener('keypress',e=>{if(e.key==='Enter')aT()});
 
-    let jM=[{t:"APPLIED",c:"background:#333;color:#fff"},{t:"INTERVIEW",c:"background:#5b748a;color:#fff"},{t:"OFFER",c:"background:#171717;color:#c4c2b5"}];
-    function rJ(){
-      let c=document.getElementById('jb-ls'); c.innerHTML='';
-      st.jb.forEach(j=>{
-        let r=document.createElement('div'); r.className='tsk'; r.style.borderColor='#0003'; r.style.flexWrap='wrap';
-        r.innerHTML=`<span style="flex:1;font-weight:600;min-width:100px;overflow-wrap:anywhere;">${j.t}</span><div style="display:flex;align-items:center;"><span class="click tag" style="${jM[j.s].c}" onclick="cJ(${j.id})">${jM[j.s].t}</span><b class="click" style="color:#888;margin-left:10px;padding:5px;" onclick="dJ(${j.id})">×</b></div>`;
+    function rTR() {
+      const c = document.getElementById('trk-ls');
+      c.innerHTML = '';
+      st.trk.forEach(t => {
+        const r = document.createElement('div');
+        r.className = 'tsk click';
+        r.style.opacity = t.d ? '0.5' : '1';
+        r.onclick = (e) => { if(e.target.tagName !== 'B') { t.d = !t.d; sv(); rTR(); } };
+        r.innerHTML = `<div style="display:flex;align-items:center;flex:1"><div class="chk ${t.d?'done':''}"></div><span style="flex:1;overflow-wrap:anywhere;min-width:100px;">${t.t}</span></div><b class="click" onclick="dTR(${t.id})">X</b>`;
         c.appendChild(r);
-      }); bindCursor();
+      });
     }
-    window.aJ=()=>{let i=document.getElementById('i-jb'),v=i.value.trim().toUpperCase(); if(v){st.jb.push({id:Date.now(),t:v,s:0}); i.value=''; plySnd(1000, 'triangle', 0.1, 0.03, 40); sv(); rJ();}}
-    window.cJ=(id)=>{let j=st.jb.find(x=>x.id===id); j.s=(j.s+1)%3; plySnd(800, 'sine', 0.1, 0.03, 30); sv(); rJ();}
-    window.dJ=(id)=>{st.jb=st.jb.filter(x=>x.id!==id); plySnd(300, 'sawtooth', 0.1, 0.03, 20); sv(); rJ();}
-    document.getElementById('i-jb').addEventListener('keypress',e=>{if(e.key==='Enter')aJ()});
+
+    function rJ() {
+      const c = document.getElementById('jb-ls');
+      c.innerHTML = '';
+      st.jb.forEach(j => {
+        const r = document.createElement('div');
+        r.className = 'tsk';
+        r.style.borderColor = '#0003';
+        r.style.flexWrap = 'wrap';
+        r.innerHTML = `<span style="flex:1;font-weight:600;min-width:100px;overflow-wrap:anywhere;">${j.t}</span><div style="display:flex;align-items:center;"><span class="click tag">${['APPLIED','INTERVIEW','OFFER'][j.s]}</span><b class="click" onclick="dJ(${j.id})">X</b></div>`;
+        c.appendChild(r);
+      });
+    }
 
     function rE() {
-      let c = document.getElementById('ev-ls'); c.innerHTML='';
-      let evs = st.cal.sort((a,b) => new Date(a.dt) - new Date(b.dt)); 
+      const c = document.getElementById('ev-ls');
+      c.innerHTML = '';
+      const evs = st.cal.sort((a,b) => new Date(a.dt) - new Date(b.dt));
       evs.forEach(e => {
-        let r = document.createElement('div'); r.className='tsk'; r.style.flexWrap='wrap';
-        r.innerHTML = `<span class="tag t-dt">${e.dt}</span><span style="flex:1; margin-left:8px; font-weight:600; overflow-wrap:anywhere; min-width:100px;">${e.t}</span><b class="click" style="color:#888; padding:5px; margin-left:10px;" onclick="dE(${e.id})">×</b>`;
+        const r = document.createElement('div');
+        r.className = 'tsk';
+        r.style.flexWrap = 'wrap';
+        r.innerHTML = `<span class="tag">${e.dt}</span><span style="flex:1; margin-left:8px; font-weight:600; overflow-wrap:anywhere; min-width:100px;">${e.t}</span><b class="click" onclick="dE(${e.id})">X</b>`;
         c.appendChild(r);
-      }); bindCursor();
+      });
     }
-    window.aE = () => { let d=document.getElementById('i-dt').value, t=document.getElementById('i-ev').value.trim().toUpperCase(); if(d && t) { st.cal.push({id:Date.now(), dt:d, t:t}); document.getElementById('i-ev').value=''; plySnd(1000, 'triangle', 0.1, 0.03, 40); sv(); rE(); } }
-    window.dE = (id) => { st.cal = st.cal.filter(x=>x.id!==id); plySnd(300, 'sawtooth', 0.1, 0.03, 20); sv(); rE(); }
-    document.getElementById('i-ev').addEventListener('keypress',e=>{if(e.key==='Enter')aE()});
 
-    window.expD = () => { let b=new Blob([JSON.stringify(st)],{type:"application/json"}), a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download="uiux_os_backup.json"; a.click(); plySnd(1200, 'sine', 0.2); };
-    window.impD = () => { document.getElementById('f-imp').click(); };
-    document.getElementById('f-imp').addEventListener('change', e => { let f=e.target.files[0]; if(!f) return; let r=new FileReader(); r.onload = ev => { try { st=JSON.parse(ev.target.result); sv(); rT(); rE(); rJ(); rH(); padEl.value=st.pad; plySnd(1500, 'square', 0.3, 0.03, 100); alert('Data Restored!'); } catch(err){ alert('Invalid File'); } }; r.readAsText(f); });
+    window.aT = () => { const i = document.getElementById('i-tk'); const v = i.value.trim().toUpperCase(); if(v){ st.tk.push({id:Date.now(), t:v, y:document.getElementById('i-ty').value, d:0}); i.value=''; sv(); rT(); } };
+    window.dT = (id) => { st.tk = st.tk.filter(x => x.id !== id); sv(); rT(); };
+    window.aTR = () => { const i = document.getElementById('i-trk'); const v = i.value.trim(); if(v){ st.trk.push({id:Date.now(), t:v, d:0}); i.value=''; sv(); rTR(); } };
+    window.dTR = (id) => { st.trk = st.trk.filter(x => x.id !== id); sv(); rTR(); };
+    window.aJ = () => { const i = document.getElementById('i-jb'); const v = i.value.trim().toUpperCase(); if(v){ st.jb.push({id:Date.now(), t:v, s:0}); i.value=''; sv(); rJ(); } };
+    window.dJ = (id) => { st.jb = st.jb.filter(x => x.id !== id); sv(); rJ(); };
+    window.aE = () => { const d = document.getElementById('i-dt').value; const t = document.getElementById('i-ev').value.trim().toUpperCase(); if(d && t){ st.cal.push({id:Date.now(), dt:d, t:t}); document.getElementById('i-dt').value=''; document.getElementById('i-ev').value=''; sv(); rE(); } };
+    window.dE = (id) => { st.cal = st.cal.filter(x => x.id !== id); sv(); rE(); };
+    window.expD = () => { const b = new Blob([JSON.stringify(st)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'uiux_os_backup.json'; a.click(); };
+    window.impD = () => document.getElementById('f-imp').click();
+    document.getElementById('f-imp').addEventListener('change', e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => { try { st = JSON.parse(ev.target.result); sv(); padEl.value = st.pad || ''; rT(); rTR(); rJ(); rE(); } catch(_) {} }; r.readAsText(f); });
 
-    function rH(){ let c=document.getElementById('ht'); c.innerHTML=''; let d=new Date(); for(let i=83;i>=0;i--){ let nd=new Date(d); nd.setDate(nd.getDate()-i); let s=nd.toISOString().split('T')[0]; let v=st.ht[s]||0; c.innerHTML+=`<div class="hb ${v>0?'h'+v:''}"></div>`; } }
-    Chart.defaults.color='#888'; Chart.defaults.font.family="'Space Mono'";
-    
-    let dC = new Chart(document.getElementById('dc'),{type:'doughnut',data:{labels:['UI','UN'],datasets:[{data:[1,1],backgroundColor:['#333333','#222222'],borderWidth:2,borderColor:'#222'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'75%',plugins:{legend:{display:false}}}});
-    function uDC(){
-      let u=0,n=0; st.tk.forEach(t=>{t.y==='ui'?u++:n++;}); 
-      if(u===0&&n===0) { dC.data.datasets[0].data=[1,1]; dC.data.datasets[0].backgroundColor=['#333','#222']; }
-      else { dC.data.datasets[0].data=[u,n]; dC.data.datasets[0].backgroundColor=['#5b748a','#c4c2b5']; }
-      dC.update();
-    }
-    
-    let lC = new Chart(document.getElementById('lc'),{type:'line',data:{labels:['M','T','W','T','F','S','S'],datasets:[{label:'Tasks', data:[0,0,0,0,0,0,0],borderColor:'#5b748a',borderWidth:2,tension:0},{label:'Hours', data:[0,0,0,0,0,0,0],borderColor:'#c4c2b5',borderWidth:2,tension:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#333'}},x:{grid:{color:'#333'}}}}});
-    function updChart() { if(lC){ lC.data.datasets[0].data[6] = st.tk.filter(x=>x.d).length; lC.data.datasets[1].data[6] = st.hr; lC.update(); } }
-
-    function upd(){ 
-      let tD = st.tk.filter(t=>t.d).length; let xp = Math.floor((st.hr * 100) + (tD * 20));
-      let lvl = Math.floor(Math.sqrt(xp / 10)) + 1; let nxXp = Math.pow(lvl, 2) * 10; let prXp = Math.pow(lvl-1, 2) * 10;
-      let pct = xp === 0 ? 0 : ((xp - prXp) / (nxXp - prXp)) * 100;
+    function lgA(p) { st.ht[td] = (st.ht[td] || 0) + p; if(st.ht[td] > 4) st.ht[td] = 4; sv(); }
+    function upd() {
+      const tD = st.tk.filter(t => t.d).length; const xp = Math.floor((st.hr * 100) + (tD * 20));
+      const lvl = Math.floor(Math.sqrt(xp / 10)) + 1; const nxXp = Math.pow(lvl, 2) * 10; const prXp = Math.pow(lvl - 1, 2) * 10;
+      const pct = xp === 0 ? 0 : ((xp - prXp) / (nxXp - prXp)) * 100;
       document.getElementById('lvl-txt').innerText = `LVL ${lvl.toString().padStart(2,'0')}`;
       document.getElementById('xp-bar').style.width = `${pct}%`;
-      document.getElementById('xp-tot').innerText = xp;
-      document.getElementById('st-hr').innerText = st.hr.toFixed(1)+'H'; 
-      updChart();
+      document.getElementById('st-hr').innerText = st.hr.toFixed(1) + 'H';
     }
-    
-    document.getElementById('dt').innerText=new Date().toLocaleDateString('en-GB').replace(/\//g,'.');
-    rT(); rE(); rJ(); rH(); upd(); te.innerText=fT(tl); te.dataset.text=fT(tl); bindCursor();
+
+    function rH(){ const c = document.getElementById('ht'); c.innerHTML = ''; const d = new Date(); for(let i = 83; i >= 0; i--){ const nd = new Date(d); nd.setDate(nd.getDate() - i); const s = nd.toISOString().split('T')[0]; const val = st.ht[s] || 0; const hb = document.createElement('div'); hb.className = 'hb ' + (val === 1 ? 'h1' : val === 2 ? 'h2' : val === 3 ? 'h3' : val === 4 ? 'h4' : ''); c.appendChild(hb); } }
+    Chart.defaults.color = '#888'; Chart.defaults.font.family = "'Space Mono'";
+    const dC = new Chart(document.getElementById('dc'), {type:'doughnut', data:{labels:['UI','UN'], datasets:[{data:[1,1], backgroundColor:['#333333','#222222'], borderWidth:2, borderColor:'#222'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+    const lC = new Chart(document.getElementById('lc'), {type:'line', data:{labels:['M','T','W','T','F','S','S'], datasets:[{label:'Tasks', data:[0,0,0,0,0,0,0], borderColor:'#5b748a', borderWidth:2, tension:0.4},{label:'Hours', data:[0,0,0,0,0,0,0], borderColor:'#c4c2b5', borderWidth:2, tension:0.4}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+    function uDC(){ let u=0,n=0; st.tk.forEach(t=>{t.y==='ui'?u++:n++;}); dC.data.datasets[0].data = [Math.max(u,1), Math.max(n,1)]; dC.update(); }
+    function updChart(){ if(lC){ lC.data.datasets[0].data[6] = st.tk.filter(x=>x.d).length; lC.data.datasets[1].data[6] = st.hr; lC.update(); } }
+
+    document.getElementById('dt').innerText = new Date().toLocaleDateString('en-GB').replace(/\//g,'.');
+    const laws = ["Fitts's Law: Target size & distance matter.", "Hick's Law: More choices = more time.", "Jakob's Law: Users like familiar things.", "Zeigarnik Effect: We remember unfinished tasks."];
+    document.getElementById('law-txt').innerText = laws[new Date().getDay() % laws.length];
+    rT(); rTR(); rE(); rJ(); rH(); upd(); uDC();
   </script>
 </body>
 </html>
