@@ -85,7 +85,11 @@
       <div class="card sp2"><div class="lbl">ACTIVITY HISTORY<span>TASKS/HR</span></div><div class="cw"><canvas id="lc"></canvas></div></div>
       <div class="card sp2"><div class="lbl">CONSISTENCY<span>12WKS</span></div><div class="heat" id="ht"></div></div>
       <div class="card sp2"><div class="lbl">MASTER TASK LIST<span>PRIORITY</span></div><div class="inp"><select id="i-ty"><option value="ui">UI/UX</option><option value="un">UNI</option></select><input type="text" id="i-tk" placeholder="Add task..."><button class="click" onclick="aT()">ADD</button></div><div id="tk-ls"></div></div>
-      <div class="card sp2"><div class="lbl">DAILY TRACKER<span>WHAT TO TRACK</span></div><div class="inp"><input type="text" id="i-trk" placeholder="Track item..."><button class="click" onclick="aTR()">ADD</button></div><div id="trk-ls"></div></div>
+      <div class="card sp2"><div class="lbl">DAILY TRACKER<span>WHAT TO TRACK</span></div><div id="hab-ls"></div></div>
+      <div class="card sp2"><div class="lbl">WEEKLY GOALS<span>THIS WEEK</span></div><div id="wk-ls"></div></div>
+      <div class="card sp2"><div class="lbl">MONTHLY MILESTONES<span>ROADMAP</span></div><div id="ms-ls"></div></div>
+      <div class="card sp2"><div class="lbl">KEY DEADLINES<span>COUNTDOWN</span></div><div id="dl-ls"></div></div>
+      <div class="card sp2"><div class="lbl">STATS<span>TRACKED</span></div><textarea id="wins-txt" placeholder="Today's wins..."></textarea><div id="stats-ls"></div></div>
       <div class="card sp2"><div class="lbl">SCRATCHPAD<span>AUTO-SAVE</span></div><textarea id="pad" placeholder="Quick ideas, notes, links..."></textarea></div>
       <div class="card sp2"><div class="lbl">SYSTEM DATA<span>BACKUP</span></div><div class="btns" style="margin:auto 0;"><button class="btn click glc" data-text="EXPORT DATA" onclick="expD()">EXPORT</button><button class="btn click glc" data-text="IMPORT DATA" onclick="impD()">IMPORT</button></div><input id="f-imp" type="file" accept="application/json" style="display:none;"></div>
       <div class="card sp2"><div class="lbl">EVENT CALENDAR<span>IMPORTANT DATES</span></div><div class="inp"><input type="date" id="i-dt"><input type="text" id="i-ev" placeholder="Event note..."><button class="click" onclick="aE()">ADD</button></div><div id="ev-ls"></div></div>
@@ -112,10 +116,7 @@
     if(typeof st.stats.wins !== 'string') st.stats.wins = '';
     if(typeof st.stats.streak !== 'number') st.stats.streak = 0;
 
-    const habitDefs = [
-      'Prayer', 'Wake up 6am', 'Cold shower', 'Gym / walk', 'Coursera module',
-      'Codedex HTML/CSS', 'Figma practice', 'BBA exam prep', 'Sleep by 10:30pm', 'Nofap'
-    ];
+    const habitDefs = ['Prayer', 'Wake up 6am', 'Cold shower', 'Gym / walk', 'Coursera module', 'Codedex HTML/CSS', 'Figma practice', 'BBA exam prep', 'Sleep by 10:30pm', 'Nofap'];
     const weeklyGoals = [
       { key: 'modules', label: 'Modules completed this week', target: 3 },
       { key: 'codedex', label: 'Codedex lessons done', target: 0 },
@@ -144,11 +145,12 @@
     const padEl = document.getElementById('pad');
     padEl.value = st.pad;
     padEl.addEventListener('input', e => { st.pad = e.target.value; sv(); });
+    const winsEl = document.getElementById('wins-txt');
+    winsEl.value = st.stats.wins || '';
+    winsEl.addEventListener('input', e => { st.stats.wins = e.target.value; sv(); });
 
     function renderHabitTracker() {
-      const c = document.getElementById('hab-ls');
-      if(!c) return;
-      c.innerHTML = '';
+      const c = document.getElementById('hab-ls'); c.innerHTML = '';
       habitDefs.forEach(name => {
         const item = st.hab.find(x => x.name === name) || { name, checked: false };
         const row = document.createElement('div');
@@ -176,9 +178,7 @@
     }
 
     function renderWeeklyGoals() {
-      const c = document.getElementById('wk-ls');
-      if(!c) return;
-      c.innerHTML = '';
+      const c = document.getElementById('wk-ls'); c.innerHTML = '';
       weeklyGoals.forEach(g => {
         const val = Number(st.wk[g.key] || 0);
         const row = document.createElement('div');
@@ -190,9 +190,7 @@
     }
 
     function renderMilestones() {
-      const c = document.getElementById('ms-ls');
-      if(!c) return;
-      c.innerHTML = '';
+      const c = document.getElementById('ms-ls'); c.innerHTML = '';
       milestones.forEach(m => {
         const block = document.createElement('div');
         block.className = 'tsk';
@@ -204,9 +202,7 @@
     }
 
     function renderDeadlines() {
-      const c = document.getElementById('dl-ls');
-      if(!c) return;
-      c.innerHTML = '';
+      const c = document.getElementById('dl-ls'); c.innerHTML = '';
       deadlines.forEach(d => {
         const diff = Math.ceil((new Date(d.date + 'T23:59:59') - new Date()) / 86400000);
         const row = document.createElement('div');
@@ -219,7 +215,6 @@
 
     function renderStatsCards() {
       const c = document.getElementById('stats-ls');
-      if(!c) return;
       const daysToMarch = Math.max(0, Math.ceil((marchDeadline - new Date()) / 86400000));
       const nofapDays = Number(st.stats.nofap?.days || 0);
       const totalModules = Number(st.stats.moduleTotal || 0);
@@ -231,12 +226,10 @@
         <div class="tsk"><span>Total modules completed</span><b>${totalModules}</b></div>
         <div class="tsk"><span>Total Codedex lessons done</span><b>${totalCodedex}</b></div>
       `;
-      document.getElementById('wins-txt').value = st.stats.wins || '';
     }
 
     function rT() {
-      const c = document.getElementById('tk-ls');
-      c.innerHTML = '';
+      const c = document.getElementById('tk-ls'); c.innerHTML = '';
       st.tk.forEach(t => {
         const r = document.createElement('div');
         r.className = 'tsk click';
@@ -248,8 +241,7 @@
     }
 
     function rTR() {
-      const c = document.getElementById('trk-ls');
-      c.innerHTML = '';
+      const c = document.getElementById('trk-ls'); c.innerHTML = '';
       st.trk.forEach(t => {
         const r = document.createElement('div');
         r.className = 'tsk click';
@@ -261,8 +253,7 @@
     }
 
     function rJ() {
-      const c = document.getElementById('jb-ls');
-      c.innerHTML = '';
+      const c = document.getElementById('jb-ls'); c.innerHTML = '';
       st.jb.forEach(j => {
         const r = document.createElement('div');
         r.className = 'tsk';
@@ -274,8 +265,7 @@
     }
 
     function rE() {
-      const c = document.getElementById('ev-ls');
-      c.innerHTML = '';
+      const c = document.getElementById('ev-ls'); c.innerHTML = '';
       const evs = st.cal.sort((a,b) => new Date(a.dt) - new Date(b.dt));
       evs.forEach(e => {
         const r = document.createElement('div');
@@ -296,7 +286,7 @@
     window.dE = (id) => { st.cal = st.cal.filter(x => x.id !== id); sv(); rE(); };
     window.expD = () => { const b = new Blob([JSON.stringify(st)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'uiux_os_backup.json'; a.click(); };
     window.impD = () => document.getElementById('f-imp').click();
-    document.getElementById('f-imp').addEventListener('change', e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => { try { st = JSON.parse(ev.target.result); sv(); padEl.value = st.pad || ''; rT(); rTR(); rJ(); rE(); renderAll(); } catch(_) {} }; r.readAsText(f); });
+    document.getElementById('f-imp').addEventListener('change', e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev => { try { st = JSON.parse(ev.target.result); sv(); padEl.value = st.pad || ''; winsEl.value = st.stats?.wins || ''; rT(); rTR(); rJ(); rE(); renderAll(); } catch(_) {} }; r.readAsText(f); });
 
     function lgA(p) { st.ht[td] = (st.ht[td] || 0) + p; if(st.ht[td] > 4) st.ht[td] = 4; sv(); }
     function upd() {
@@ -306,8 +296,7 @@
       document.getElementById('lvl-txt').innerText = `LVL ${lvl.toString().padStart(2,'0')}`;
       document.getElementById('xp-bar').style.width = `${pct}%`;
       document.getElementById('st-hr').innerText = st.hr.toFixed(1) + 'H';
-      const wins = document.getElementById('wins-txt');
-      if(wins) st.stats.wins = wins.value;
+      st.stats.wins = winsEl.value || '';
     }
 
     function rH(){ const c = document.getElementById('ht'); c.innerHTML = ''; const d = new Date(); for(let i = 83; i >= 0; i--){ const nd = new Date(d); nd.setDate(nd.getDate() - i); const s = nd.toISOString().split('T')[0]; const val = st.ht[s] || 0; const hb = document.createElement('div'); hb.className = 'hb ' + (val === 1 ? 'h1' : val === 2 ? 'h2' : val === 3 ? 'h3' : val === 4 ? 'h4' : ''); c.appendChild(hb); } }
@@ -317,14 +306,7 @@
     function uDC(){ let u=0,n=0; st.tk.forEach(t=>{t.y==='ui'?u++:n++;}); dC.data.datasets[0].data = [Math.max(u,1), Math.max(n,1)]; dC.update(); }
     function updChart(){ if(lC){ lC.data.datasets[0].data[6] = st.tk.filter(x=>x.d).length; lC.data.datasets[1].data[6] = st.hr; lC.update(); } }
 
-    function renderAll() {
-      renderHabitTracker();
-      renderWeeklyGoals();
-      renderMilestones();
-      renderDeadlines();
-      renderStatsCards();
-      rT(); rTR(); rE(); rJ(); rH(); upd(); uDC();
-    }
+    function renderAll() { renderHabitTracker(); renderWeeklyGoals(); renderMilestones(); renderDeadlines(); renderStatsCards(); rT(); rTR(); rE(); rJ(); rH(); upd(); uDC(); }
 
     document.getElementById('dt').innerText = new Date().toLocaleDateString('en-GB').replace(/\//g,'.');
     const laws = ["Fitts's Law: Target size & distance matter.", "Hick's Law: More choices = more time.", "Jakob's Law: Users like familiar things.", "Zeigarnik Effect: We remember unfinished tasks."];
